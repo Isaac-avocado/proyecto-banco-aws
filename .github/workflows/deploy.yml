@@ -1,6 +1,5 @@
 name: Despliegue Automático Banco AWS
 
-# El robot se activa cuando hacemos "push" a la rama main
 on:
   push:
     branches:
@@ -47,17 +46,16 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY }}
           envs: DOCKER_USERNAME,MONGO_URI,JWT_SECRET
           script: |
-            # 1. Descargar el plano de producción más reciente
             curl -o docker-compose.prod.yml https://raw.githubusercontent.com/${{ github.repository }}/main/docker-compose.prod.yml
-            
-            # 2. Inyectar secretos temporales
             export DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
             export MONGO_URI="${{ secrets.MONGO_URI }}"
             export JWT_SECRET="${{ secrets.JWT_SECRET }}"
             
-            # 🔥 NUEVO: Obligar a AWS a descargar las imágenes frescas
             docker pull ${DOCKER_USERNAME}/aws-banco-frontend:latest
             docker pull ${DOCKER_USERNAME}/aws-banco-backend:latest
             
-            # 3. Desplegar en Docker Swarm
             docker stack deploy -c docker-compose.prod.yml banco_aws
+            
+            # 🔥 SOLUCIÓN NUCLEAR: Obligamos a Docker a reiniciar con el código fresco
+            docker service update --force banco_aws_frontend-banco
+            docker service update --force banco_aws_backend-banco
