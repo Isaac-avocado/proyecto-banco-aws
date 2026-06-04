@@ -51,11 +51,15 @@ jobs:
             export MONGO_URI="${{ secrets.MONGO_URI }}"
             export JWT_SECRET="${{ secrets.JWT_SECRET }}"
             
+            # 🔥 DESTRUCCIÓN CONTROLADA: Tumbamos el stack viejo para que Swarm no recicle imágenes
+            docker stack rm banco_aws
+            
+            # Esperamos 10 segundos a que los workers limpien los contenedores viejos
+            sleep 10
+            
+            # Descargamos las imágenes frescas explícitamente
             docker pull ${DOCKER_USERNAME}/aws-banco-frontend:latest
             docker pull ${DOCKER_USERNAME}/aws-banco-backend:latest
             
+            # Levantamos el banco desde cero con el código nuevo
             docker stack deploy -c docker-compose.prod.yml banco_aws
-            
-            # 🔥 SOLUCIÓN NUCLEAR: Obligamos a Docker a reiniciar con el código fresco
-            docker service update --force banco_aws_frontend-banco
-            docker service update --force banco_aws_backend-banco
