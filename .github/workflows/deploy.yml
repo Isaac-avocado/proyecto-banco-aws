@@ -53,18 +53,20 @@ jobs:
             export MONGO_URI="${{ secrets.MONGO_URI }}"
             export JWT_SECRET="${{ secrets.JWT_SECRET }}"
             
-            # 2. Limpieza de stack
-            # Si el stack no existe, esto mostrará un mensaje inofensivo que no detendrá el pipeline
+            # 2. Limpieza exhaustiva
+            # Eliminamos el stack. Si da error porque no existe, se ignora.
             docker stack rm banco_aws || true
             
-            # Esperamos a que los servicios se eliminen por completo
+            # Esperamos a que los servicios se eliminen
             sleep 15
             
-            # 3. Forzamos la descarga de las nuevas imágenes
+            # 3. Limpieza de red huérfana
+            # Si la red persiste, intentamos borrarla para que stack deploy no colisione
+            docker network rm banco_aws_red_bancaria || true
+            
+            # 4. Forzamos la descarga de las nuevas imágenes
             docker pull ${DOCKER_USERNAME}/aws-banco-frontend:latest
             docker pull ${DOCKER_USERNAME}/aws-banco-backend:latest
             
-            # 4. Despliegue inteligente
-            # Ya no necesitamos crear la red manualmente porque el archivo compose 
-            # define la red y Swarm la gestionará automáticamente sin errores de "already exists"
+            # 5. Despliegue inteligente
             docker stack deploy -c docker-compose.prod.yml --resolve-image always banco_aws
