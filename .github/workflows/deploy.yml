@@ -53,11 +53,19 @@ jobs:
             export MONGO_URI="${{ secrets.MONGO_URI }}"
             export JWT_SECRET="${{ secrets.JWT_SECRET }}"
             
-            # 2. Forzamos la descarga de las nuevas imágenes
+            # 2. Limpieza segura y recreación de red
+            # Eliminamos el stack, pero no la red explícitamente para evitar conflictos residuales
+            docker stack rm banco_aws
+            sleep 10
+            
+            # Aseguramos que la red exista antes de lanzar el stack
+            if ! docker network inspect banco_aws_red_bancaria >/dev/null 2>&1; then
+              docker network create -d overlay banco_aws_red_bancaria
+            fi
+            
+            # 3. Forzamos la descarga de las nuevas imágenes
             docker pull ${DOCKER_USERNAME}/aws-banco-frontend:latest
             docker pull ${DOCKER_USERNAME}/aws-banco-backend:latest
             
-            # 3. Despliegue inteligente:
-            # Si el stack existe, se actualiza. Si no, se crea.
-            # Usamos --resolve-image=always para asegurar que tome las imágenes recién bajadas
+            # 4. Despliegue inteligente
             docker stack deploy -c docker-compose.prod.yml --resolve-image always banco_aws
