@@ -5,6 +5,8 @@ services:
     image: ${DOCKER_USERNAME}/aws-banco-backend:latest
     networks:
       - red_bancaria
+    ports:
+      - "3000:3000"
     environment:
       - MONGO_URI=${MONGO_URI}
       - JWT_SECRET=${JWT_SECRET}
