@@ -46,17 +46,18 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY }}
           envs: DOCKER_USERNAME,MONGO_URI,JWT_SECRET
           script: |
-            # Descargamos la configuración más reciente desde GitHub
+            # 1. Descargamos la configuración más reciente
             curl -o docker-compose.prod.yml https://raw.githubusercontent.com/${{ github.repository }}/main/docker-compose.prod.yml
             
             export DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
             export MONGO_URI="${{ secrets.MONGO_URI }}"
             export JWT_SECRET="${{ secrets.JWT_SECRET }}"
             
-            # Forzamos la descarga de las nuevas imágenes para asegurar que Swarm use el código actualizado
+            # 2. Forzamos la descarga de las nuevas imágenes
             docker pull ${DOCKER_USERNAME}/aws-banco-frontend:latest
             docker pull ${DOCKER_USERNAME}/aws-banco-backend:latest
             
-            # Desplegamos utilizando el stack existente. 
-            # Swarm detectará los cambios y actualizará los servicios manteniendo la red activa.
-            docker stack deploy -c docker-compose.prod.yml banco_aws
+            # 3. Despliegue inteligente:
+            # Si el stack existe, se actualiza. Si no, se crea.
+            # Usamos --resolve-image=always para asegurar que tome las imágenes recién bajadas
+            docker stack deploy -c docker-compose.prod.yml --resolve-image always banco_aws
