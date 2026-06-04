@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  # SERVICIO 1: Nuestro API (Backend)
+  backend-banco:
+    build: ./backend
+    container_name: aws-banco-backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env # Inyecta tu conexión a MongoDB automáticamente
+    restart: always
+
+  # SERVICIO 2: Nuestra Interfaz Web (Frontend)
+  frontend-banco:
+    build: ./frontend
+    container_name: aws-banco-frontend
+    ports:
+      - "8080:80" # Mapeamos el puerto 80 del Nginx al 8080 de tu compu
+    depends_on:
+      - backend-banco # Espera a que el backend arranque primero
+    restart: always

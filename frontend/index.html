@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Cloud Bank</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #f8fafc;
+            background-image: radial-gradient(at 0% 0%, hsla(339, 78%, 88%, 0.4) 0px, transparent 50%),
+                              radial-gradient(at 100% 0%, hsla(253, 85%, 88%, 0.4) 0px, transparent 50%);
+            min-height: 100vh;
+        }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
+        }
+
+        .gradient-card {
+            background: linear-gradient(135deg, #ff8c72 0%, #e84d94 40%, #6a54f0 100%);
+        }
+
+        /* 🎬 MEJORA: Animación fluida entre pantallas */
+        .fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased selection:bg-pink-200 selection:text-pink-900">
+
+    <!-- ==================== VISTA: LOGIN ==================== -->
+    <div id="view-login" class="min-h-screen flex items-center justify-center p-4 lg:p-8">
+        <div class="glass-panel w-full max-w-md rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-pink-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30"></div>
+            <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30"></div>
+
+            <div class="relative z-10">
+                <div class="text-center mb-10">
+                    <div class="w-20 h-20 gradient-card rounded-[1.5rem] mx-auto flex items-center justify-center mb-5 shadow-lg transform rotate-3">
+                        <i class="fa-solid fa-building-columns text-3xl text-white -rotate-3"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-800 tracking-tight">AWS Cloud Bank</h1>
+                    <p class="text-gray-500 font-medium mt-2">Bienvenido a la nueva banca</p>
+                </div>
+                
+                <form id="form-login" class="space-y-6" novalidate>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider ml-1">Correo Electrónico</label>
+                        <div class="relative">
+                            <i class="fa-regular fa-envelope absolute left-4 top-4 text-gray-400"></i>
+                            <input type="email" id="login-email" required class="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#e84d94] outline-none transition-all shadow-sm" placeholder="juan@correo.com">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider ml-1">Contraseña</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-4 top-4 text-gray-400"></i>
+                            <input type="password" id="login-password" required class="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#e84d94] outline-none transition-all shadow-sm" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full gradient-card hover:opacity-90 text-white font-bold py-4 rounded-2xl shadow-lg transition-all duration-300 transform hover:-translate-y-1">Iniciar Sesión</button>
+                </form>
+                
+                <div class="mt-8 text-center">
+                    <span class="text-gray-500 text-sm">¿Aún no eres cliente?</span>
+                    <button onclick="showView('register')" class="text-[#e84d94] text-sm font-bold hover:underline ml-1 transition-colors">Abre tu cuenta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== VISTA: REGISTRO ==================== -->
+    <div id="view-register" class="min-h-screen flex items-center justify-center p-4 lg:p-8 hidden">
+        <div class="glass-panel w-full max-w-md rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Crea tu Cuenta</h1>
+                    <p class="text-gray-500 font-medium mt-2">Recibe $10,000 de bono inicial</p>
+                </div>
+                
+                <form id="form-register" class="space-y-5" novalidate>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider ml-1">Nombre Completo</label>
+                        <div class="relative">
+                            <i class="fa-regular fa-user absolute left-4 top-4 text-gray-400"></i>
+                            <input type="text" id="reg-name" required class="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#6a54f0] outline-none transition-all" placeholder="Ej. Juan Perez">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider ml-1">Correo Electrónico</label>
+                        <div class="relative">
+                            <i class="fa-regular fa-envelope absolute left-4 top-4 text-gray-400"></i>
+                            <input type="email" id="reg-email" required class="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#6a54f0] outline-none transition-all" placeholder="tucorreo@ejemplo.com">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider ml-1">Contraseña Segura</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-4 top-4 text-gray-400"></i>
+                            <input type="password" id="reg-password" required class="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#6a54f0] outline-none transition-all" placeholder="Crea una contraseña">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-[#6a54f0] hover:bg-[#5a46d1] text-white font-bold py-4 rounded-2xl shadow-lg transition-all duration-300 mt-2">Comenzar ahora</button>
+                </form>
+                
+                <div class="mt-6 text-center">
+                    <button onclick="showView('login')" class="text-gray-500 hover:text-gray-800 text-sm font-semibold transition-colors"><i class="fa-solid fa-arrow-left mr-2"></i>Volver al inicio</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== VISTA: DASHBOARD ==================== -->
+    <div id="view-dashboard" class="hidden min-h-screen flex-col w-full">
+        <!-- Navbar Superior -->
+        <nav class="bg-white/70 backdrop-blur-md border-b border-gray-200 sticky top-0 z-30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-20 items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 gradient-card rounded-xl flex items-center justify-center shadow-md">
+                            <i class="fa-solid fa-building-columns text-white text-lg"></i>
+                        </div>
+                        <span class="font-bold text-xl hidden sm:block tracking-wide">AWS Bank</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-right mr-2">
+                            <p class="text-sm font-bold text-gray-800" id="nav-user-name">Usuario</p>
+                            <p class="text-xs text-green-500 font-medium"><i class="fa-solid fa-circle text-[8px] mr-1"></i>En línea</p>
+                        </div>
+                        <button onclick="logout()" class="w-10 h-10 bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500 rounded-full flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- COLUMNA IZQUIERDA -->
+                <div class="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-28">
+                    
+                    <!-- Tarjeta Virtual -->
+                    <div class="gradient-card rounded-[2rem] shadow-2xl p-6 md:p-8 text-white relative overflow-hidden aspect-[1.58/1] flex flex-col justify-between">
+                        <div class="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-10 rounded-full blur-2xl"></div>
+                        
+                        <div class="flex justify-between items-start relative z-10 w-full gap-2">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-medium opacity-80 mb-1">Saldo Disponible</p>
+                                <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-white truncate max-w-full">$<span id="dash-balance">0.00</span></h2>
+                                    <!-- 👁️ MEJORA: Ocultar/Mostrar saldo protegido con flex-shrink -->
+                                    <button onclick="toggleBalance()" class="opacity-70 hover:opacity-100 transition-opacity flex-shrink-0">
+                                        <i id="eye-icon" class="fa-solid fa-eye text-xl"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Logo AWS con flex-shrink para que no se aplaste -->
+                            <i class="fa-brands fa-aws text-3xl sm:text-4xl opacity-90 flex-shrink-0"></i>
+                        </div>
+                        
+                        <div class="relative z-10 mt-6">
+                            <i class="fa-solid fa-microchip text-4xl opacity-80 text-yellow-100"></i>
+                        </div>
+
+                        <div class="flex justify-between items-end relative z-10 mt-auto">
+                            <div>
+                                <p class="text-xs font-semibold opacity-70 uppercase tracking-widest mb-1">Cuenta CLABE</p>
+                                <p id="dash-account" class="font-mono text-lg md:text-xl tracking-[0.2em] font-medium">1800 0000 00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="openModal('modal-transfer')" class="bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl p-5 shadow-sm transition-all flex flex-col items-center justify-center group">
+                            <div class="w-14 h-14 rounded-full bg-pink-50 flex items-center justify-center mb-3 group-hover:bg-pink-100">
+                                <i class="fa-solid fa-paper-plane text-2xl text-[#e84d94]"></i>
+                            </div>
+                            <span class="font-semibold text-gray-700 text-sm">Transferir</span>
+                        </button>
+                        <button onclick="openModal('modal-add-account')" class="bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl p-5 shadow-sm transition-all flex flex-col items-center justify-center group">
+                            <div class="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center mb-3 group-hover:bg-purple-100">
+                                <i class="fa-solid fa-user-plus text-2xl text-[#6a54f0]"></i>
+                            </div>
+                            <span class="font-semibold text-gray-700 text-sm">Nuevo Destino</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- COLUMNA DERECHA: Historial -->
+                <div class="lg:col-span-7 xl:col-span-8">
+                    <div class="bg-white rounded-[2rem] shadow-lg border border-gray-100 p-6 md:p-8 flex flex-col h-[600px] lg:h-auto lg:min-h-[700px]">
+                        
+                        <div class="flex justify-between items-center mb-8 border-b border-gray-100 pb-4">
+                            <h3 class="text-xl md:text-2xl font-bold text-gray-800 tracking-tight">Actividad Reciente</h3>
+                            <button onclick="loadDashboard()" class="flex items-center gap-2 text-sm font-semibold text-[#6a54f0] bg-purple-50 hover:bg-purple-100 px-4 py-2 rounded-full transition-colors">
+                                <i class="fa-solid fa-rotate-right"></i> <span class="hidden sm:inline">Actualizar</span>
+                            </button>
+                        </div>
+
+                        <div class="flex-grow overflow-y-auto pr-2">
+                            <div id="history-list" class="space-y-3"></div>
+                            
+                            <div id="empty-history" class="hidden h-full flex flex-col items-center justify-center py-12">
+                                <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fa-solid fa-receipt text-4xl text-gray-300"></i>
+                                </div>
+                                <h4 class="text-lg font-bold text-gray-700">Sin movimientos</h4>
+                                <p class="text-gray-400 text-sm mt-1 text-center max-w-xs">Aún no has realizado ninguna transferencia.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== MODALES ==================== -->
+    <div id="modal-transfer" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="closeModal('modal-transfer')"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md mx-4 relative z-10 overflow-hidden fade-in">
+            <div class="px-8 py-6 bg-gray-50 border-b border-gray-100 flex justify-between items-center sticky top-0 z-20">
+                <h3 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-paper-plane text-[#e84d94] mr-3"></i>Enviar Dinero</h3>
+                <button onclick="closeModal('modal-transfer')" class="w-8 h-8 bg-white border border-gray-200 hover:bg-gray-100 rounded-full text-gray-500 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-8">
+                <form id="form-transfer" class="space-y-6" novalidate>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Cuenta Destino</label>
+                        <select id="trans-dest" class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#e84d94] outline-none font-medium text-gray-700 cursor-pointer">
+                            <option value="" disabled selected>Selecciona un contacto...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Monto a Enviar</label>
+                        <div class="relative">
+                            <span class="absolute left-5 top-3.5 text-2xl font-bold text-gray-400">$</span>
+                            <input type="number" id="trans-amount" step="0.01" max="1000000" class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#e84d94] outline-none font-bold text-2xl text-gray-800" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Concepto (Opcional)</label>
+                        <input type="text" id="trans-desc" class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#e84d94] outline-none" placeholder="Ej. Pago de la cena">
+                    </div>
+                    <button type="submit" class="w-full bg-[#e84d94] hover:bg-[#d13a7c] text-white font-bold py-4 rounded-2xl shadow-lg mt-2 transition-all">Confirmar Transferencia</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-add-account" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="closeModal('modal-add-account')"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md mx-4 relative z-10 overflow-hidden fade-in">
+            <div class="px-8 py-6 bg-gray-50 border-b border-gray-100 flex justify-between items-center sticky top-0 z-20">
+                <h3 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-user-plus text-[#6a54f0] mr-3"></i>Nuevo Contacto</h3>
+                <button onclick="closeModal('modal-add-account')" class="w-8 h-8 bg-white border border-gray-200 hover:bg-gray-100 rounded-full text-gray-500 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-8">
+                <form id="form-add-account" class="space-y-6" novalidate>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Número de Cuenta (10 dígitos)</label>
+                        <input type="text" id="add-account-num" class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#6a54f0] outline-none font-mono tracking-[0.2em] text-lg text-gray-800" placeholder="1800000000">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Alias / Nombre Corto</label>
+                        <input type="text" id="add-alias" class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#6a54f0] outline-none text-gray-800" placeholder="Ej. Mi compadre">
+                    </div>
+                    <button type="submit" class="w-full bg-[#6a54f0] hover:bg-[#5842d6] text-white font-bold py-4 rounded-2xl shadow-lg mt-2 transition-all">Guardar Contacto</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LÓGICA JAVASCRIPT ==================== -->
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let currentToken = localStorage.getItem('token') || null;
+        let currentUserData = null;
+        let isBalanceHidden = false; // 👁️ Estado para ocultar dinero
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (currentToken) { showView('dashboard'); loadDashboard(); } 
+            else { showView('login'); }
+        });
+
+        function showView(viewName) {
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-register').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.add('hidden');
+            
+            const target = document.getElementById(`view-${viewName}`);
+            target.classList.remove('hidden');
+            target.classList.add(viewName === 'dashboard' ? 'flex' : 'flex', 'fade-in');
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            if(id === 'modal-transfer') document.getElementById('form-transfer').reset();
+            if(id === 'modal-add-account') document.getElementById('form-add-account').reset();
+        }
+
+        // 🛡️ MEJORA: Pedir confirmación al cerrar sesión
+        async function logout(force = false) {
+            if (!force) {
+                const confirm = await Swal.fire({
+                    title: '¿Cerrar Sesión?',
+                    text: '¿Estás seguro de que deseas salir de tu cuenta?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e84d94',
+                    cancelButtonColor: '#e5e7eb',
+                    cancelButtonText: '<span class="text-gray-600 font-bold">Cancelar</span>',
+                    confirmButtonText: 'Sí, salir',
+                    customClass: { popup: 'rounded-[2rem]' }
+                });
+
+                if (!confirm.isConfirmed) return; // Si el usuario cancela, no hacemos nada
+            }
+
+            // Si confirmó o es un cierre forzado (por token expirado)
+            localStorage.removeItem('token');
+            currentToken = null;
+            currentUserData = null;
+            showView('login');
+        }
+
+        function showError(titulo, mensaje, color = '#e84d94') {
+            Swal.fire({ icon: 'warning', title: titulo, text: mensaje, confirmButtonColor: color, customClass: { popup: 'rounded-3xl' } });
+        }
+
+        // 👁️ Función para ocultar saldo
+        function toggleBalance() {
+            isBalanceHidden = !isBalanceHidden;
+            const balEl = document.getElementById('dash-balance');
+            const iconEl = document.getElementById('eye-icon');
+            
+            if(isBalanceHidden) {
+                balEl.textContent = '****';
+                iconEl.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                balEl.textContent = currentUserData.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
+                iconEl.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        async function fetchAPI(endpoint, method, body = null) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (currentToken) headers['Authorization'] = `Bearer ${currentToken}`;
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, { method, headers, body: body ? JSON.stringify(body) : null });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Error en la petición');
+                return data;
+            } catch (error) {
+                showError('Transacción Rechazada', error.message);
+                throw error;
+            }
+        }
+
+        document.getElementById('form-login').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            if(!email || !password) return showError('Datos requeridos', 'Ingresa tu correo y contraseña.');
+
+            try {
+                Swal.fire({ title: 'Autenticando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }, customClass: { popup: 'rounded-3xl' } });
+                const res = await fetchAPI('/auth/login', 'POST', { email, password });
+                Swal.close();
+                currentToken = res.token;
+                localStorage.setItem('token', currentToken);
+                document.getElementById('form-login').reset();
+                showView('dashboard');
+                loadDashboard();
+            } catch (error) {}
+        });
+
+        document.getElementById('form-register').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            
+            if(!name || !email || !password) return showError('Datos requeridos', 'Completa todos los campos.', '#6a54f0');
+
+            try {
+                Swal.fire({ title: 'Creando cuenta...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }, customClass: { popup: 'rounded-3xl' } });
+                const res = await fetchAPI('/auth/register', 'POST', { name, email, password });
+                
+                document.getElementById('form-register').reset();
+                showView('login');
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: '¡Cuenta Creada!', 
+                    html: `Tu bono de $10,000 ha sido depositado.<br>Tu CLABE es:<br><b class="text-3xl font-mono text-[#6a54f0] mt-3 block tracking-widest">${res.user.accountNumber}</b>`,
+                    confirmButtonColor: '#6a54f0', customClass: { popup: 'rounded-3xl' }
+                });
+            } catch (error) {}
+        });
+
+        async function loadDashboard() {
+            try {
+                const data = await fetchAPI('/account/dashboard', 'GET');
+                currentUserData = data.user;
+                
+                document.getElementById('nav-user-name').textContent = data.user.name;
+                
+                // Respetar si el usuario ocultó el saldo
+                if(!isBalanceHidden) {
+                    document.getElementById('dash-balance').textContent = data.user.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
+                }
+                
+                const accStr = data.user.accountNumber;
+                document.getElementById('dash-account').textContent = accStr.replace(/(\d{4})/g, '$1 ').trim();
+                
+                const selectDest = document.getElementById('trans-dest');
+                
+                // 📝 MEJORA: Estado vacío en el selector de cuentas
+                if(data.user.savedAccounts.length === 0) {
+                    selectDest.innerHTML = '<option value="" disabled selected>⚠️ No tienes contactos. Registra uno primero.</option>';
+                } else {
+                    selectDest.innerHTML = '<option value="" disabled selected>Selecciona un contacto...</option>';
+                    data.user.savedAccounts.forEach(acc => {
+                        selectDest.innerHTML += `<option value="${acc.accountNumber}">${acc.alias} (${acc.accountNumber.slice(-4)})</option>`;
+                    });
+                }
+
+                const list = document.getElementById('history-list');
+                const emptyMsg = document.getElementById('empty-history');
+                list.innerHTML = '';
+                
+                if (data.history.length === 0) {
+                    emptyMsg.classList.remove('hidden');
+                } else {
+                    emptyMsg.classList.add('hidden');
+                    data.history.forEach(tx => {
+                        const isOut = tx.originAccount === currentUserData.accountNumber;
+                        const dateObj = new Date(tx.createdAt);
+                        const time = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                        const dateStr = dateObj.toLocaleDateString('es-MX', { month: 'short', day: 'numeric' });
+                        const amountStr = tx.amount.toLocaleString('en-US', {minimumFractionDigits: 2});
+                        
+                        const colorText = isOut ? 'text-gray-800' : 'text-green-600';
+                        const sign = isOut ? '-' : '+';
+                        const iconStore = isOut ? '<i class="fa-solid fa-store"></i>' : '<i class="fa-solid fa-hand-holding-dollar"></i>';
+                        const iconBg = isOut ? 'bg-pink-50 text-[#e84d94]' : 'bg-green-50 text-green-500';
+                        const detailText = isOut ? `Para: ${tx.destinationAccount}` : `De: ${tx.originAccount}`;
+
+                        list.innerHTML += `
+                            <div class="flex items-center justify-between p-4 rounded-2xl hover:bg-white border border-transparent hover:border-gray-100 hover:shadow-sm transition-all cursor-pointer">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full ${iconBg} flex items-center justify-center text-xl">
+                                        ${iconStore}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-800">${tx.description}</p>
+                                        <p class="text-xs text-gray-400 font-medium">${detailText}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-lg ${colorText}">${sign}$${amountStr}</p>
+                                    <p class="text-xs text-gray-400 font-medium">${dateStr}, ${time}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                if (error.message.includes('token') || error.message.includes('No hay token')) logout(true); // Forzar cierre si el token es inválido
+            }
+        }
+
+        document.getElementById('form-add-account').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const accountNumber = document.getElementById('add-account-num').value;
+            const alias = document.getElementById('add-alias').value;
+            
+            if(!accountNumber || !alias) return showError('Atención', 'Por favor llena todos los campos.', '#6a54f0');
+            if(!/^\d{10}$/.test(accountNumber)) return showError('Cuenta Inválida', 'La cuenta debe tener exactamente 10 dígitos.', '#6a54f0');
+
+            try {
+                Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }, customClass: { popup: 'rounded-3xl' } });
+                await fetchAPI('/account/register-destination', 'POST', { accountNumber, alias });
+                closeModal('modal-add-account');
+                Swal.fire({ icon: 'success', title: 'Contacto Guardado', text: `${alias} agregado a tu agenda.`, confirmButtonColor: '#6a54f0', customClass: { popup: 'rounded-3xl' } });
+                loadDashboard();
+            } catch (error) {}
+        });
+
+        document.getElementById('form-transfer').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const destinationAccount = document.getElementById('trans-dest').value;
+            const amount = parseFloat(document.getElementById('trans-amount').value);
+            const description = document.getElementById('trans-desc').value || 'Transferencia bancaria';
+            
+            if(!destinationAccount) return showError('Atención', 'Selecciona a quién le enviarás el dinero. (Agrega un contacto primero si no tienes).');
+            if(isNaN(amount) || amount < 1 || amount > 1000000) return showError('Monto Inválido', 'El envío debe estar entre $1.00 y $1,000,000.00 pesos.');
+
+            closeModal('modal-transfer');
+            
+            const confirm = await Swal.fire({
+                title: '¿Confirmar Envío?',
+                html: `Estás a punto de transferir <br><b class="text-[#e84d94] text-3xl block mt-2">$${amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</b>`,
+                showCancelButton: true,
+                confirmButtonColor: '#e84d94', cancelButtonColor: '#e5e7eb',
+                cancelButtonText: '<span class="text-gray-600 font-bold">Cancelar</span>',
+                confirmButtonText: '<i class="fa-solid fa-paper-plane mr-2"></i>Sí, Enviar',
+                customClass: { popup: 'rounded-[2rem]' }
+            });
+
+            if (confirm.isConfirmed) {
+                try {
+                    Swal.fire({ title: 'Procesando transacción...', text: 'No cierres esta ventana', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }, customClass: { popup: 'rounded-3xl' } });
+                    const res = await fetchAPI('/account/transfer', 'POST', { destinationAccount, amount, description });
+                    loadDashboard();
+                    
+                    Swal.fire({
+                        icon: 'success', title: '¡Envío Exitoso!',
+                        html: `Tu dinero ha sido transferido.<br><br><span class="text-sm text-gray-500">Nuevo saldo disponible:</span><br><b class="text-2xl text-gray-800">$${res.newBalance.toLocaleString('en-US', {minimumFractionDigits: 2})}</b>`,
+                        confirmButtonColor: '#6a54f0', customClass: { popup: 'rounded-[2rem]' }
+                    });
+                } catch (error) {}
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+name: Despliegue Automático Banco AWS
+
+# El robot se activa cuando hacemos "push" a la rama main
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    name: Construir y Subir Imágenes a Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v3
+
+      - name: Iniciar sesión en Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Construir y Subir Backend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/aws-banco-backend:latest
+
+      - name: Construir y Subir Frontend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/aws-banco-frontend:latest
+
+  deploy-to-aws:
+    name: Actualizar AWS Docker Swarm
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conectar a EC2 (Manager) y Desplegar
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AWS_HOST_IP }}
+          username: ec2-user
+          key: ${{ secrets.AWS_SSH_KEY }}
+          envs: DOCKER_USERNAME,MONGO_URI,JWT_SECRET
+          script: |
+            # 1. Descargar el plano de producción más reciente
+            curl -o docker-compose.prod.yml https://raw.githubusercontent.com/${{ github.repository }}/main/docker-compose.prod.yml
+            
+            # 2. Inyectar secretos temporales y desplegar en Docker Swarm (Rolling Update)
+            export DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
+            export MONGO_URI="${{ secrets.MONGO_URI }}"
+            export JWT_SECRET="${{ secrets.JWT_SECRET }}"
+            
+            docker stack deploy -c docker-compose.prod.yml banco_aws

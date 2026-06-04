@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend-banco:
+    image: ${DOCKER_USERNAME}/aws-banco-backend:latest
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "3000:3000"
+    deploy:
+      mode: replicated
+      replicas: 2 # 📝 RÚBRICA: 2 réplicas del backend para Alta Disponibilidad
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first # 📝 RÚBRICA: Rolling Update (Cero caídas)
+      restart_policy:
+        condition: on-failure
+
+  frontend-banco:
+    image: ${DOCKER_USERNAME}/aws-banco-frontend:latest
+    ports:
+      - "80:80" # En AWS lo expondremos directamente en el puerto 80 (HTTP)
+    deploy:
+      mode: replicated
+      replicas: 1 # 📝 RÚBRICA: 1 réplica del frontend
+      update_config:
+        order: start-first
+      restart_policy:
+        condition: on-failure
