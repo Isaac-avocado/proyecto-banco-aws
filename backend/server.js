@@ -16,7 +16,11 @@ if (!process.env.MONGO_URI || !process.env.JWT_SECRET) {
 const app = express();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+    origin: '*', // En producción, es mejor poner la IP de tu frontend: 'http://tu-ip-aws:8080'
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 app.use(express.json());
 
 // 1. Conexión a la Base de Datos (MongoDB Atlas)
